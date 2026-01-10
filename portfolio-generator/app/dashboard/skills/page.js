@@ -2,244 +2,202 @@
 
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import Link from 'next/link';
+import { Card, Button, Modal, Select, Input, Badge } from '@/components';
 
 export default function SkillsPage() {
-  const [skills, setSkills] = useState([]);
-  const [allSkills, setAllSkills] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [formData, setFormData] = useState({
-    skillDefID: '',
-    proficiencyLevel: 5,
-  });
+    const [skills, setSkills] = useState([]);
+    const [definitions, setDefinitions] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [formData, setFormData] = useState({ skillDefId: '', proficiency: 5 });
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    fetchSkills();
-    fetchAllSkills();
-  }, []);
+    // Fetch Data
+    const fetchData = async () => {
+        try {
+            const [skillsRes, defsRes] = await Promise.all([
+                fetch('/api/skills'),
+                fetch('/api/skills/definitions')
+            ]);
 
-  const fetchSkills = async () => {
-    try {
-      const res = await fetch('/api/skills');
-      if (res.ok) {
-        const data = await res.json();
-        setSkills(data.skills);
-      }
-    } catch (error) {
-      toast.error('Failed to load skills');
-    } finally {
-      setLoading(false);
-    }
-  };
+            if (skillsRes.ok && defsRes.ok) {
+                setSkills((await skillsRes.json()).skills || []);
+                setDefinitions(await defsRes.json());
+            }
+        } catch (error) {
+            toast.error('Failed to load skills');
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  const fetchAllSkills = async () => {
-    try {
-      const res = await fetch('/api/skills/definitions');
-      if (res.ok) {
-        const data = await res.json();
-        setAllSkills(data.skills);
-      }
-    } catch (error) {
-      console.error('Failed to load skill definitions');
-    }
-  };
+    useEffect(() => {
+        fetchData();
+    }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    try {
-      const res = await fetch('/api/skills', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-      
-      const data = await res.json();
-      
-      if (res.ok) {
-        toast.success('Skill added!');
-        setShowModal(false);
-        setFormData({ skillDefID: '', proficiencyLevel: 5 });
-        fetchSkills();
-      } else {
-        toast.error(data.error || 'Operation failed');
-      }
-    } catch (error) {
-      toast.error('An error occurred');
-    }
-  };
+    // Add Skill
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setIsSubmitting(true);
 
-  const handleUpdateProficiency = async (userSkillID, newLevel) => {
-    try {
-      const res = await fetch(`/api/skills/${userSkillID}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ proficiencyLevel: newLevel }),
-      });
-      
-      if (res.ok) {
-        toast.success('Proficiency updated');
-        fetchSkills();
-      }
-    } catch (error) {
-      toast.error('Failed to update');
-    }
-  };
+        try {
+            const res = await fetch('/api/skills', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData),
+            });
 
-  const handleDelete = async (id) => {
-    if (!confirm('Remove this skill?')) return;
-    
-    try {
-      const res = await fetch(`/api/skills/${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        toast.success('Skill removed');
-        fetchSkills();
-      }
-    } catch (error) {
-      toast.error('Failed to remove skill');
-    }
-  };
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.error || 'Failed to add skill');
+            }
 
-  const groupedSkills = skills.reduce((acc, skill) => {
-    if (!acc[skill.Category]) acc[skill.Category] = [];
-    acc[skill.Category].push(skill);
-    return acc;
-  }, {});
+            toast.success('Skill added!');
+            setIsModalOpen(false);
+            setFormData({ skillDefId: '', proficiency: 5 });
+            fetchData();
+        } catch (error) {
+            toast.error(error.message);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">My Skills</h1>
-          <div className="flex gap-4">
-            <button
-              onClick={() => setShowModal(true)}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg"
-            >
-              + Add Skill
-            </button>
-            <Link href="/dashboard" className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg">
-              Back to Dashboard
-            </Link>
-          </div>
-        </div>
-      </header>
+    // Remove Skill
+    const handleDelete = async (id) => {
+        if (!confirm('Remove this skill from your profile?')) return;
+        try {
+            await fetch(`/api/skills/${id}`, { method: 'DELETE' });
+            toast.success('Skill removed');
+            setSkills(skills.filter(s => s.UserSkillID !== id));
+        } catch (error) {
+            toast.error('Failed to remove skill');
+        }
+    };
 
-      <div className="container mx-auto px-4 py-8">
-        {loading ? (
-          <div className="text-center text-gray-600">Loading...</div>
-        ) : skills.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-md p-8 text-center">
-            <div className="text-6xl mb-4">🎯</div>
-            <h3 className="text-xl font-semibold mb-2">No skills yet</h3>
-            <p className="text-gray-600 mb-4">Start by adding your technical skills!</p>
-            <button
-              onClick={() => setShowModal(true)}
-              className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg"
-            >
-              Add Your First Skill
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-8">
-            {Object.entries(groupedSkills).map(([category, categorySkills]) => (
-              <div key={category} className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-semibold mb-4">{category}</h2>
-                <div className="space-y-4">
-                  {categorySkills.map((skill) => (
-                    <div key={skill.UserSkillID} className="flex items-center gap-4">
-                      <div className="flex-1">
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="font-medium">{skill.SkillName}</span>
-                          <span className="text-sm text-gray-600">
-                            Level {skill.ProficiencyLevel}/10
-                          </span>
-                        </div>
-                        <input
-                          type="range"
-                          min="1"
-                          max="10"
-                          value={skill.ProficiencyLevel}
-                          onChange={(e) => handleUpdateProficiency(skill.UserSkillID, parseInt(e.target.value))}
-                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
-                        />
-                      </div>
-                      <button
-                        onClick={() => handleDelete(skill.UserSkillID)}
-                        className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm"
-                      >
-                        Remove
-                      </button>
+    // Group Skills by Category
+    const groupedSkills = skills.reduce((acc, skill) => {
+        const cat = skill.Category || 'Other';
+        if (!acc[cat]) acc[cat] = [];
+        acc[cat].push(skill);
+        return acc;
+    }, {});
+
+    if (loading) return <div className="text-center py-20 text-gray-500 animate-pulse">Loading skills...</div>;
+
+    return (
+        <div className="space-y-8 animate-in fade-in duration-500">
+            <div className="flex justify-between items-center">
+                <div>
+                    <h1 className="text-3xl font-bold text-white mb-2">My Skills</h1>
+                    <p className="text-gray-400">Manage your technical expertise and proficiency.</p>
+                </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+                {/* Add New Skill Card */}
+                <div
+                    onClick={() => setIsModalOpen(true)}
+                    className="glass-card rounded-3xl p-6 flex flex-col items-center justify-center text-center cursor-pointer border-dashed border-2 border-white/10 hover:border-white/20 hover:bg-white/5 transition-all group min-h-[200px]"
+                >
+                    <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform">
+                        <span className="text-3xl">+</span>
                     </div>
-                  ))}
+                    <h3 className="text-xl font-bold text-white mb-1">Add Skill</h3>
+                    <p className="text-gray-500 text-sm">Expand your expertise</p>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
 
-      {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h2 className="text-xl font-bold mb-4">Add New Skill</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Select Skill *
-                </label>
-                <select
-                  required
-                  value={formData.skillDefID}
-                  onChange={(e) => setFormData({ ...formData, skillDefID: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                >
-                  <option value="">Choose a skill...</option>
-                  {allSkills.map((skill) => (
-                    <option key={skill.SkillDefID} value={skill.SkillDefID}>
-                      {skill.SkillName} ({skill.Category})
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Proficiency Level: {formData.proficiencyLevel}/10
-                </label>
-                <input
-                  type="range"
-                  min="1"
-                  max="10"
-                  value={formData.proficiencyLevel}
-                  onChange={(e) => setFormData({ ...formData, proficiencyLevel: parseInt(e.target.value) })}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>Beginner</span>
-                  <span>Expert</span>
-                </div>
-              </div>
-              <div className="flex gap-2 pt-4">
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg"
-                >
-                  Add Skill
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setShowModal(false); setFormData({ skillDefID: '', proficiencyLevel: 5 }); }}
-                  className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
+                {Object.entries(groupedSkills).map(([category, items]) => (
+                    <div key={category} className="glass-card rounded-3xl p-6">
+                        <h3 className="text-lg font-bold text-white mb-4 border-b border-white/5 pb-2 flex items-center justify-between">
+                            {category}
+                            <Badge variant="secondary" size="sm">{items.length}</Badge>
+                        </h3>
+                        <div className="space-y-3">
+                            {items.map(skill => (
+                                <div key={skill.UserSkillID} className="group flex items-center gap-4 bg-white/5 p-3 rounded-2xl hover:bg-white/10 transition-colors border border-transparent hover:border-white/10">
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center text-lg font-bold border border-white/10 text-gray-300">
+                                        {skill.SkillName.charAt(0)}
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="flex justify-between items-center mb-1">
+                                            <span className="font-medium text-gray-200">{skill.SkillName}</span>
+                                            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button
+                                                    onClick={() => handleDelete(skill.UserSkillID)}
+                                                    className="text-gray-500 hover:text-red-400 transition-colors"
+                                                >
+                                                    ×
+                                                </button>
+                                            </div>
+                                        </div>
+                                        {/* Proficiency Bar */}
+                                        <div className="h-1.5 w-full bg-gray-800 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-gradient-to-r from-purple-500 to-indigo-500"
+                                                style={{ width: `${(skill.ProficiencyLevel * 10)}%` }}
+                                            ></div>
+                                        </div>
+                                        <div className="text-xs text-right mt-1 text-gray-500">Lvl {skill.ProficiencyLevel}</div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Add Skill Modal */}
+            <Modal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                title="Add New Skill"
+            >
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <Select
+                        label="Select Skill"
+                        value={formData.skillDefId}
+                        onChange={(e) => setFormData({ ...formData, skillDefId: e.target.value })}
+                        required
+                    >
+                        <option value="">Choose a skill...</option>
+                        {definitions.map(def => (
+                            <option key={def.SkillDefID} value={def.SkillDefID}>
+                                {def.SkillName} ({def.Category})
+                            </option>
+                        ))}
+                    </Select>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-300 block">
+                            Proficiency Level (1-10)
+                        </label>
+                        <div className="flex items-center gap-4">
+                            <input
+                                type="range"
+                                min="1"
+                                max="10"
+                                value={formData.proficiency}
+                                onChange={(e) => setFormData({ ...formData, proficiency: parseInt(e.target.value) })}
+                                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                            />
+                            <div className="w-12 h-10 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center font-bold text-purple-400">
+                                {formData.proficiency}
+                            </div>
+                        </div>
+                        <p className="text-xs text-gray-500">1 = Novice, 10 = Expert</p>
+                    </div>
+
+                    <div className="flex justify-end gap-3 pt-4">
+                        <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button type="submit" variant="primary" disabled={isSubmitting}>
+                            {isSubmitting ? 'Adding...' : 'Add Skill'}
+                        </Button>
+                    </div>
+                </form>
+            </Modal>
         </div>
-      )}
-    </div>
-  );
+    );
 }

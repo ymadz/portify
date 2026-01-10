@@ -3,7 +3,9 @@
 
 import { NextResponse } from 'next/server';
 import { query } from '@/lib/db';
-import { hashPassword, createSession, setSessionCookie } from '@/lib/auth';
+import { hashPassword, createSession } from '@/lib/auth';
+
+const SESSION_COOKIE_NAME = 'portfolio_session';
 
 export async function POST(request) {
   try {
@@ -43,9 +45,9 @@ export async function POST(request) {
     
     // Insert new user
     const result = await query(
-      `INSERT INTO Users (FullName, Email, PasswordHash, Bio)
-       OUTPUT INSERTED.UserID, INSERTED.FullName, INSERTED.Email
-       VALUES (@fullName, @email, @passwordHash, @bio)`,
+      `INSERT INTO Users (FullName, Email, PasswordHash, Bio, Role)
+       OUTPUT INSERTED.UserID, INSERTED.FullName, INSERTED.Email, INSERTED.Role
+       VALUES (@fullName, @email, @passwordHash, @bio, 'user')`,
       { 
         fullName, 
         email, 
@@ -56,11 +58,10 @@ export async function POST(request) {
     
     const newUser = result.recordset[0];
     
-    // Create session
+    // Create session and response
     const token = createSession(newUser.UserID, newUser.Email, newUser.FullName);
-    await setSessionCookie(token);
     
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       user: {
         id: newUser.UserID,
@@ -68,6 +69,17 @@ export async function POST(request) {
         email: newUser.Email,
       },
     }, { status: 201 });
+    
+    // Set session cookie on response
+    response.cookies.set(SESSION_COOKIE_NAME, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60, // 24 hours in seconds
+      path: '/',
+    });
+    
+    return response;
     
   } catch (error) {
     console.error('Registration error:', error);

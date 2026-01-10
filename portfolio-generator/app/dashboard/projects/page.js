@@ -1,239 +1,214 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import Link from 'next/link';
+import { Card, Button, Modal, Input, Textarea } from '@/components';
 
 export default function ProjectsPage() {
-  const router = useRouter();
-  const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [editingProject, setEditingProject] = useState(null);
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    projectURL: '',
-    dateCompleted: '',
-  });
+    const [projects, setProjects] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [currentProject, setCurrentProject] = useState(null); // null = create mode
+    const [formData, setFormData] = useState({ title: '', description: '', projectUrl: '' });
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    fetchProjects();
-  }, []);
+    // Fetch Projects
+    const fetchProjects = async () => {
+        try {
+            const res = await fetch('/api/projects');
+            if (res.ok) {
+                const data = await res.json();
+                setProjects(data.projects || []);
+            }
+        } catch (error) {
+            toast.error('Failed to load projects');
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  const fetchProjects = async () => {
-    try {
-      const res = await fetch('/api/projects');
-      if (res.ok) {
-        const data = await res.json();
-        setProjects(data.projects);
-      }
-    } catch (error) {
-      toast.error('Failed to load projects');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    try {
-      const url = editingProject 
-        ? `/api/projects/${editingProject.ProjectID}`
-        : '/api/projects';
-      const method = editingProject ? 'PUT' : 'POST';
-      
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-      
-      if (res.ok) {
-        toast.success(editingProject ? 'Project updated!' : 'Project added!');
-        setShowModal(false);
-        setEditingProject(null);
-        setFormData({ title: '', description: '', projectURL: '', dateCompleted: '' });
+    useEffect(() => {
         fetchProjects();
-      } else {
-        const data = await res.json();
-        toast.error(data.error || 'Operation failed');
-      }
-    } catch (error) {
-      toast.error('An error occurred');
-    }
-  };
+    }, []);
 
-  const handleEdit = (project) => {
-    setEditingProject(project);
-    setFormData({
-      title: project.Title,
-      description: project.Description || '',
-      projectURL: project.ProjectURL || '',
-      dateCompleted: project.DateCompleted ? project.DateCompleted.split('T')[0] : '',
-    });
-    setShowModal(true);
-  };
+    // Handle Form Input
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Delete this project?')) return;
-    
-    try {
-      const res = await fetch(`/api/projects/${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        toast.success('Project deleted');
-        fetchProjects();
-      }
-    } catch (error) {
-      toast.error('Failed to delete project');
-    }
-  };
+    // Open Modal
+    const openModal = (project = null) => {
+        if (project) {
+            setCurrentProject(project);
+            setFormData({
+                title: project.Title,
+                description: project.Description,
+                projectUrl: project.ProjectURL || ''
+            });
+        } else {
+            setCurrentProject(null);
+            setFormData({ title: '', description: '', projectUrl: '' });
+        }
+        setIsModalOpen(true);
+    };
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">My Projects</h1>
-          <div className="flex gap-4">
-            <button
-              onClick={() => { setEditingProject(null); setFormData({ title: '', description: '', projectURL: '', dateCompleted: '' }); setShowModal(true); }}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg"
-            >
-              + Add Project
-            </button>
-            <Link href="/dashboard" className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg">
-              Back to Dashboard
-            </Link>
-          </div>
-        </div>
-      </header>
+    // Submit Form (Create or Update)
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setIsSubmitting(true);
 
-      <div className="container mx-auto px-4 py-8">
-        {loading ? (
-          <div className="text-center text-gray-600">Loading...</div>
-        ) : projects.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-md p-8 text-center">
-            <div className="text-6xl mb-4">📁</div>
-            <h3 className="text-xl font-semibold mb-2">No projects yet</h3>
-            <p className="text-gray-600 mb-4">Start by adding your first project!</p>
-            <button
-              onClick={() => setShowModal(true)}
-              className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg"
-            >
-              Add Your First Project
-            </button>
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map((project) => (
-              <div key={project.ProjectID} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-                <h3 className="text-lg font-semibold mb-2">{project.Title}</h3>
-                <p className="text-gray-600 text-sm mb-4 line-clamp-3">{project.Description}</p>
-                {project.ProjectURL && (
-                  <a href={project.ProjectURL} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-700 text-sm mb-2 block">
-                    🔗 View Project
-                  </a>
-                )}
-                {project.DateCompleted && (
-                  <p className="text-gray-500 text-xs mb-4">
-                    Completed: {new Date(project.DateCompleted).toLocaleDateString()}
-                  </p>
-                )}
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleEdit(project)}
-                    className="flex-1 px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(project.ProjectID)}
-                    className="flex-1 px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm"
-                  >
-                    Delete
-                  </button>
+        try {
+            const url = currentProject ? `/api/projects/${currentProject.ProjectID}` : '/api/projects';
+            const method = currentProject ? 'PUT' : 'POST';
+
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData),
+            });
+
+            if (!res.ok) throw new Error('Failed to save project');
+
+            toast.success(currentProject ? 'Project updated!' : 'Project created!');
+            setIsModalOpen(false);
+            fetchProjects();
+        } catch (error) {
+            toast.error(error.message);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    // Delete Project
+    const handleDelete = async (id) => {
+        if (!confirm('Are you sure you want to delete this project?')) return;
+
+        try {
+            const res = await fetch(`/api/projects/${id}`, { method: 'DELETE' });
+            if (!res.ok) throw new Error('Failed to delete');
+
+            toast.success('Project deleted');
+            setProjects(projects.filter(p => p.ProjectID !== id));
+        } catch (error) {
+            toast.error('Failed to delete project');
+        }
+    };
+
+    if (loading) return <div className="text-center py-20 text-gray-500 animate-pulse">Loading projects...</div>;
+
+    return (
+        <div className="space-y-8 animate-in fade-in duration-500">
+            <div className="flex justify-between items-center">
+                <div>
+                    <h1 className="text-3xl font-bold text-white mb-2">My Projects</h1>
+                    <p className="text-gray-400">Showcase your best work to the world.</p>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+            </div>
 
-      {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h2 className="text-xl font-bold mb-4">
-              {editingProject ? 'Edit Project' : 'Add New Project'}
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Title *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
-                </label>
-                <textarea
-                  rows="3"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Project URL
-                </label>
-                <input
-                  type="url"
-                  value={formData.projectURL}
-                  onChange={(e) => setFormData({ ...formData, projectURL: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                  placeholder="https://..."
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Completion Date
-                </label>
-                <input
-                  type="date"
-                  value={formData.dateCompleted}
-                  onChange={(e) => setFormData({ ...formData, dateCompleted: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-              <div className="flex gap-2 pt-4">
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg"
+            {/* Projects Grid - Always visible to show Add Card */}
+            <div className="grid md:grid-cols-2 gap-6">
+                {/* Add New Project Card */}
+                <div
+                    onClick={() => openModal()}
+                    className="glass-card rounded-3xl p-6 flex flex-col items-center justify-center text-center cursor-pointer border-dashed border-2 border-white/10 hover:border-white/20 hover:bg-white/5 transition-all group min-h-[250px]"
                 >
-                  {editingProject ? 'Update' : 'Add'} Project
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setShowModal(false); setEditingProject(null); }}
-                  className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+                    <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform">
+                        <span className="text-3xl">+</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-1">Add Project</h3>
+                    <p className="text-gray-500 text-sm">Share a new case study</p>
+                </div>
+
+                {projects.map((project) => (
+                    <div key={project.ProjectID} className="glass-card rounded-3xl p-6 group hover:border-white/20 transition-all">
+                        <div className="flex justify-between items-start mb-4">
+                            <h3 className="text-xl font-bold text-white group-hover:text-rose-400 transition-colors">
+                                {project.Title}
+                            </h3>
+                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); openModal(project); }}
+                                    className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+                                >
+                                    ✏️
+                                </button>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); handleDelete(project.ProjectID); }}
+                                    className="p-2 rounded-lg bg-white/5 hover:bg-red-500/10 text-gray-400 hover:text-red-400 transition-colors"
+                                >
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+
+                        <p className="text-gray-400 mb-6 line-clamp-3 text-sm leading-relaxed">
+                            {project.Description}
+                        </p>
+
+                        <div className="flex items-center justify-between mt-auto">
+                            {project.ProjectURL && (
+                                <a
+                                    href={project.ProjectURL}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-sm font-medium text-rose-400 hover:text-rose-300 flex items-center gap-1"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    View Project ↗
+                                </a>
+                            )}
+                            <span className="text-xs text-gray-600 font-mono">
+                                {new Date(project.DateCompleted).toLocaleDateString()}
+                            </span>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Create/Edit Modal */}
+            <Modal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                title={currentProject ? 'Edit Project' : 'Add New Project'}
+            >
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <Input
+                        label="Project Title"
+                        name="title"
+                        value={formData.title}
+                        onChange={handleChange}
+                        placeholder="e.g. E-commerce Platform"
+                        required
+                    />
+
+                    <Textarea
+                        label="Description"
+                        name="description"
+                        value={formData.description}
+                        onChange={handleChange}
+                        placeholder="Describe the technologies used and impact..."
+                        rows={4}
+                        required
+                    />
+
+                    <Input
+                        label="Project URL"
+                        name="projectUrl"
+                        value={formData.projectUrl}
+                        onChange={handleChange}
+                        placeholder="https://github.com/username/project"
+                    />
+
+                    <div className="flex justify-end gap-3 pt-4">
+                        <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button type="submit" variant="primary" disabled={isSubmitting}>
+                            {isSubmitting ? 'Saving...' : (currentProject ? 'Update Project' : 'Create Project')}
+                        </Button>
+                    </div>
+                </form>
+            </Modal>
+        </div >
+    );
 }

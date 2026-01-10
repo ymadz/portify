@@ -27,10 +27,31 @@ export async function GET(request) {
     
     const result = await query(sqlQuery, params);
     
-    return NextResponse.json({ skills: result.recordset });
+    return NextResponse.json(result.recordset);
     
   } catch (error) {
     console.error('Get skill definitions error:', error);
     return NextResponse.json({ error: 'Failed to fetch skills' }, { status: 500 });
+  }
+}
+
+// POST: Create new skill definition
+export async function POST(request) {
+  try {
+    const body = await request.json();
+    const { skillName, category } = body;
+
+    const result = await query(
+      'INSERT INTO SkillDefinitions (SkillName, Category) OUTPUT INSERTED.* VALUES (@skillName, @category)',
+      {
+        skillName: { value: skillName, type: 'NVarChar' },
+        category: { value: category, type: 'NVarChar' }
+      }
+    );
+
+    return NextResponse.json(result.recordset[0], { status: 201 });
+  } catch (error) {
+    console.error('Error creating skill definition:', error);
+    return NextResponse.json({ error: 'Failed to create skill definition' }, { status: 500 });
   }
 }

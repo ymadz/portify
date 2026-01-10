@@ -1,6 +1,5 @@
 // Middleware for protecting routes
 import { NextResponse } from 'next/server';
-import { getSession } from './lib/auth';
 
 export function middleware(request) {
   const { pathname } = request.nextUrl;
@@ -8,36 +7,28 @@ export function middleware(request) {
   // Get session token from cookies
   const token = request.cookies.get('portfolio_session')?.value;
   
+  console.log('🟡 Middleware:', { pathname, hasToken: !!token, tokenPreview: token?.substring(0, 10) });
+  
   // Check if route requires authentication
   if (pathname.startsWith('/dashboard')) {
     if (!token) {
+      console.log('⚠️ No token found, redirecting to login');
       // Redirect to login if not authenticated
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('redirect', pathname);
       return NextResponse.redirect(loginUrl);
     }
-    
-    // Validate session
-    const session = getSession(token);
-    if (!session) {
-      // Session expired or invalid
-      const loginUrl = new URL('/login', request.url);
-      loginUrl.searchParams.set('redirect', pathname);
-      return NextResponse.redirect(loginUrl);
-    }
+    console.log('✅ Token found, allowing access to dashboard');
+    // If token exists, allow access (validation happens in API routes)
+    return NextResponse.next();
   }
   
-  // If accessing login/register while authenticated, redirect to dashboard
-  if ((pathname === '/login' || pathname === '/register') && token) {
-    const session = getSession(token);
-    if (session) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
-    }
-  }
+  // Allow access to login/register pages regardless of auth status
+  // (client-side will handle redirects after successful auth)
   
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/login', '/register'],
+  matcher: ['/dashboard/:path*'],
 };

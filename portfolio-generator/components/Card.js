@@ -1,8 +1,8 @@
 // Card component with composable parts: Header, Body, Footer
 export default function Card({ children, className = '', ...props }) {
   return (
-    <div 
-      className={`bg-white rounded-[var(--radius-md)] shadow-card p-6 ${className}`}
+    <div
+      className={`glass-card rounded-[var(--radius-md)] p-6 ${className}`}
       {...props}
     >
       {children}
@@ -20,7 +20,7 @@ Card.Header = function CardHeader({ children, className = '' }) {
 
 Card.Title = function CardTitle({ children, className = '' }) {
   return (
-    <h3 className={`text-xl font-semibold text-gray-900 ${className}`}>
+    <h3 className={`text-xl font-semibold text-white ${className}`}>
       {children}
     </h3>
   );
@@ -28,7 +28,7 @@ Card.Title = function CardTitle({ children, className = '' }) {
 
 Card.Body = function CardBody({ children, className = '' }) {
   return (
-    <div className={`text-gray-600 ${className}`}>
+    <div className={`text-gray-300 ${className}`}>
       {children}
     </div>
   );
@@ -36,7 +36,7 @@ Card.Body = function CardBody({ children, className = '' }) {
 
 Card.Footer = function CardFooter({ children, className = '' }) {
   return (
-    <div className={`mt-4 pt-4 border-t border-gray-100 ${className}`}>
+    <div className={`mt-4 pt-4 border-t border-[var(--color-border-glass)] ${className}`}>
       {children}
     </div>
   );

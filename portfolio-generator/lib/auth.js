@@ -6,7 +6,12 @@ import { cookies } from 'next/headers';
 
 // In-memory session store (for development)
 // In production, use Redis or database-backed sessions
-const sessions = new Map();
+// Use global to persist across hot reloads in development
+const globalForSessions = global;
+if (!globalForSessions.sessions) {
+  globalForSessions.sessions = new Map();
+}
+const sessions = globalForSessions.sessions;
 
 const SESSION_COOKIE_NAME = 'portfolio_session';
 const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours
@@ -52,12 +57,21 @@ export function createSession(userId, email, fullName) {
   const token = generateSessionToken();
   const expiresAt = Date.now() + SESSION_DURATION;
   
-  sessions.set(token, {
+  const sessionData = {
     userId,
     email,
     fullName,
     expiresAt,
     createdAt: Date.now(),
+  };
+  
+  sessions.set(token, sessionData);
+  
+  console.log('🟢 Session created:', {
+    token: token.substring(0, 10) + '...',
+    userId,
+    email,
+    totalSessions: sessions.size
   });
   
   return token;
@@ -69,18 +83,25 @@ export function createSession(userId, email, fullName) {
  * @returns {Object|null} - Session data or null if invalid/expired
  */
 export function getSession(token) {
+  console.log('🔍 Getting session for token:', token ? token.substring(0, 10) + '...' : 'null');
+  console.log('🔍 Total sessions in store:', sessions.size);
+  console.log('🔍 All session tokens:', Array.from(sessions.keys()).map(t => t.substring(0, 10) + '...'));
+  
   const session = sessions.get(token);
   
   if (!session) {
+    console.log('❌ Session not found in store');
     return null;
   }
   
   // Check if session has expired
   if (Date.now() > session.expiresAt) {
+    console.log('❌ Session expired');
     sessions.delete(token);
     return null;
   }
   
+  console.log('✅ Session found:', { userId: session.userId, email: session.email });
   return session;
 }
 

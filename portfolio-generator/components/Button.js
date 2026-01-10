@@ -1,30 +1,30 @@
 // Button component with variants: primary, ghost, outline, destructive
-export default function Button({ 
-  children, 
-  variant = 'primary', 
+export default function Button({
+  children,
+  variant = 'primary',
   size = 'md',
   type = 'button',
   disabled = false,
   onClick,
   className = '',
-  ...props 
+  ...props
 }) {
-  const baseStyles = 'inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
-  
+  const baseStyles = 'inline-flex items-center justify-center font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#0a0a0a] disabled:opacity-50 disabled:cursor-not-allowed';
+
   const variants = {
-    primary: 'bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)] focus:ring-[var(--accent)] shadow-sm',
-    secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-500',
-    ghost: 'bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-500',
-    outline: 'border border-gray-300 bg-transparent text-gray-700 hover:bg-gray-50 focus:ring-gray-500',
-    destructive: 'bg-[var(--destructive)] text-white hover:bg-red-600 focus:ring-red-500 shadow-sm'
+    primary: 'bg-gradient-to-r from-[var(--color-accent)] to-[#e11d48] text-white hover:shadow-[0_0_20px_rgba(244,63,94,0.4)] hover:scale-[1.02] focus:ring-[var(--color-accent)] border border-transparent',
+    secondary: 'glass text-white hover:bg-white/10 focus:ring-gray-500',
+    ghost: 'bg-transparent text-gray-300 hover:text-white hover:bg-white/5 focus:ring-gray-500',
+    outline: 'border border-[var(--color-border-glass)] bg-transparent text-white hover:bg-white/5 focus:ring-gray-500',
+    destructive: 'bg-red-900/50 border border-red-500/50 text-red-200 hover:bg-red-900/80 focus:ring-red-500'
   };
-  
+
   const sizes = {
-    sm: 'px-3 py-1.5 text-sm rounded-md',
-    md: 'px-4 py-2 text-base rounded-[var(--radius-md)]',
-    lg: 'px-6 py-3 text-lg rounded-[var(--radius-md)]'
+    sm: 'px-3 py-1.5 text-sm rounded-lg',
+    md: 'px-6 py-2.5 text-base rounded-[var(--radius-full)]',
+    lg: 'px-8 py-3.5 text-lg rounded-[var(--radius-full)]'
   };
-  
+
   return (
     <button
       type={type}

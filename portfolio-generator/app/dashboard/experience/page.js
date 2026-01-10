@@ -2,244 +2,231 @@
 
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import Link from 'next/link';
+import { Card, Button, Modal, Input } from '@/components';
 
 export default function ExperiencePage() {
-  const [experiences, setExperiences] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [editingExp, setEditingExp] = useState(null);
-  const [formData, setFormData] = useState({
-    jobTitle: '',
-    company: '',
-    startDate: '',
-    endDate: '',
-  });
-
-  useEffect(() => {
-    fetchExperiences();
-  }, []);
-
-  const fetchExperiences = async () => {
-    try {
-      const res = await fetch('/api/experience');
-      if (res.ok) {
-        const data = await res.json();
-        setExperiences(data.experience);
-      }
-    } catch (error) {
-      toast.error('Failed to load experience');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    // Trigger validation will happen in the API
-    try {
-      const url = editingExp ? `/api/experience/${editingExp.ExpID}` : '/api/experience';
-      const method = editingExp ? 'PUT' : 'POST';
-      
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          endDate: formData.endDate || null, // null means "Present"
-        }),
-      });
-      
-      const data = await res.json();
-      
-      if (res.ok) {
-        toast.success(editingExp ? 'Experience updated!' : 'Experience added!');
-        setShowModal(false);
-        setEditingExp(null);
-        setFormData({ jobTitle: '', company: '', startDate: '', endDate: '' });
-        fetchExperiences();
-      } else {
-        // Display trigger validation error
-        toast.error(data.error || 'Operation failed');
-      }
-    } catch (error) {
-      toast.error('An error occurred');
-    }
-  };
-
-  const handleEdit = (exp) => {
-    setEditingExp(exp);
-    setFormData({
-      jobTitle: exp.JobTitle,
-      company: exp.Company,
-      startDate: exp.StartDate ? exp.StartDate.split('T')[0] : '',
-      endDate: exp.EndDate ? exp.EndDate.split('T')[0] : '',
+    const [experience, setExperience] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [currentExp, setCurrentExp] = useState(null);
+    const [formData, setFormData] = useState({
+        jobTitle: '',
+        company: '',
+        startDate: '',
+        endDate: ''
     });
-    setShowModal(true);
-  };
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleDelete = async (id) => {
-    if (!confirm('Delete this experience?')) return;
-    
-    try {
-      const res = await fetch(`/api/experience/${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        toast.success('Experience deleted');
-        fetchExperiences();
-      }
-    } catch (error) {
-      toast.error('Failed to delete experience');
-    }
-  };
+    // Fetch Experience
+    const fetchExperience = async () => {
+        try {
+            const res = await fetch('/api/experience');
+            if (res.ok) {
+                setExperience((await res.json()).experience || []);
+            }
+        } catch (error) {
+            toast.error('Failed to load experience');
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">Work Experience</h1>
-          <div className="flex gap-4">
-            <button
-              onClick={() => { setEditingExp(null); setFormData({ jobTitle: '', company: '', startDate: '', endDate: '' }); setShowModal(true); }}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg"
-            >
-              + Add Experience
-            </button>
-            <Link href="/dashboard" className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg">
-              Back to Dashboard
-            </Link>
-          </div>
-        </div>
-      </header>
+    useEffect(() => {
+        fetchExperience();
+    }, []);
 
-      <div className="container mx-auto px-4 py-8">
-        {loading ? (
-          <div className="text-center text-gray-600">Loading...</div>
-        ) : experiences.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-md p-8 text-center">
-            <div className="text-6xl mb-4">💼</div>
-            <h3 className="text-xl font-semibold mb-2">No experience yet</h3>
-            <p className="text-gray-600 mb-4">Start building your professional timeline!</p>
-            <button
-              onClick={() => setShowModal(true)}
-              className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg"
-            >
-              Add Your First Experience
-            </button>
-          </div>
-        ) : (
-          <div className="max-w-3xl mx-auto">
-            <div className="space-y-6">
-              {experiences.map((exp) => (
-                <div key={exp.ExpID} className="bg-white rounded-lg shadow-md p-6 relative">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-xl font-semibold">{exp.JobTitle}</h3>
-                      <p className="text-indigo-600 font-medium">{exp.Company}</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleEdit(exp)}
-                        className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(exp.ExpID)}
-                        className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                  <p className="text-gray-600">
-                    {new Date(exp.StartDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} -{' '}
-                    {exp.EndDate ? new Date(exp.EndDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Present'}
-                  </p>
+    // Handle Form Input
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    // Open Modal
+    const openModal = (exp = null) => {
+        if (exp) {
+            setCurrentExp(exp);
+            setFormData({
+                jobTitle: exp.JobTitle,
+                company: exp.Company,
+                startDate: exp.StartDate.split('T')[0],
+                endDate: exp.EndDate ? exp.EndDate.split('T')[0] : ''
+            });
+        } else {
+            setCurrentExp(null);
+            setFormData({ jobTitle: '', company: '', startDate: '', endDate: '' });
+        }
+        setIsModalOpen(true);
+    };
+
+    // Submit Form
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+
+        try {
+            const url = currentExp ? `/api/experience/${currentExp.ExpID}` : '/api/experience';
+            const method = currentExp ? 'PUT' : 'POST';
+
+            const payload = { ...formData };
+            if (!payload.endDate) payload.endDate = null;
+
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                // Handle Trigger Error specifically
+                throw new Error(data.error || 'Failed to save experience');
+            }
+
+            toast.success(currentExp ? 'Experience updated!' : 'Experience added!');
+            setIsModalOpen(false);
+            fetchExperience();
+        } catch (error) {
+            // Show error directly (e.g., "End Date cannot be before Start Date")
+            toast.error(error.message);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    // Delete Experience
+    const handleDelete = async (id) => {
+        if (!confirm('Delete this experience entry?')) return;
+        try {
+            await fetch(`/api/experience/${id}`, { method: 'DELETE' });
+            toast.success('Deleted successfully');
+            setExperience(experience.filter(e => e.ExpID !== id));
+        } catch (error) {
+            toast.error('Failed to delete');
+        }
+    };
+
+    if (loading) return <div className="text-center py-20 text-gray-500 animate-pulse">Loading experience...</div>;
+
+    return (
+        <div className="space-y-8 animate-in fade-in duration-500">
+            <div className="flex justify-between items-center">
+                <div>
+                    <h1 className="text-3xl font-bold text-white mb-2">Work Experience</h1>
+                    <p className="text-gray-400">Your professional journey and career milestones.</p>
                 </div>
-              ))}
             </div>
-          </div>
-        )}
-      </div>
 
-      {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h2 className="text-xl font-bold mb-4">
-              {editingExp ? 'Edit Experience' : 'Add New Experience'}
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Job Title *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.jobTitle}
-                  onChange={(e) => setFormData({ ...formData, jobTitle: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Company *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.company}
-                  onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Start Date *
-                </label>
-                <input
-                  type="date"
-                  required
-                  value={formData.startDate}
-                  onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  End Date (leave empty if current)
-                </label>
-                <input
-                  type="date"
-                  value={formData.endDate}
-                  onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  ⚠️ Trigger validation: End date must be after start date
-                </p>
-              </div>
-              <div className="flex gap-2 pt-4">
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg"
+            {/* Experience List - Always visible to show Add Card */}
+            <div className="grid gap-6">
+                {/* Add New Experience Card */}
+                <div
+                    onClick={() => openModal()}
+                    className="glass-card rounded-3xl p-6 flex items-center justify-center text-center cursor-pointer border-dashed border-2 border-white/10 hover:border-white/20 hover:bg-white/5 transition-all group min-h-[120px]"
                 >
-                  {editingExp ? 'Update' : 'Add'} Experience
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setShowModal(false); setEditingExp(null); }}
-                  className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+                            <span className="text-2xl">+</span>
+                        </div>
+                        <div className="text-left">
+                            <h3 className="text-lg font-bold text-white">Add Experience</h3>
+                            <p className="text-gray-500 text-sm">Add a new role</p>
+                        </div>
+                    </div>
+                </div>
+
+                {experience.map((exp) => (
+                    <div key={exp.ExpID} className="glass-card rounded-3xl p-6 relative overflow-hidden group hover:border-white/20 transition-all">
+                        <div className="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 className="text-xl font-bold text-white group-hover:text-blue-400 transition-colors">
+                                    {exp.JobTitle}
+                                </h3>
+                                <div className="text-blue-400 font-medium">{exp.Company}</div>
+                            </div>
+                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); openModal(exp); }}
+                                    className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+                                >
+                                    ✏️
+                                </button>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); handleDelete(exp.ExpID); }}
+                                    className="p-2 rounded-lg bg-white/5 hover:bg-red-500/10 text-gray-400 hover:text-red-400 transition-colors"
+                                >
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 text-sm text-gray-500 font-mono mb-4">
+                            <span>{new Date(exp.StartDate).toLocaleDateString()}</span>
+                            <span>→</span>
+                            <span className={!exp.EndDate ? "text-green-400" : ""}>
+                                {exp.EndDate ? new Date(exp.EndDate).toLocaleDateString() : 'Present'}
+                            </span>
+                        </div>
+
+                        {/* Timeline connector (decorative) */}
+                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-transparent opacity-0 group-hover:opacity-50 transition-opacity"></div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Add/Edit Modal */}
+            <Modal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                title={currentExp ? 'Edit Experience' : 'Add Experience'}
+            >
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <Input
+                        label="Job Title"
+                        name="jobTitle"
+                        value={formData.jobTitle}
+                        onChange={handleChange}
+                        placeholder="Senior Engineer"
+                        required
+                    />
+                    <Input
+                        label="Company"
+                        name="company"
+                        value={formData.company}
+                        onChange={handleChange}
+                        placeholder="Tech Corp"
+                        required
+                    />
+                    <div className="grid grid-cols-2 gap-4">
+                        <Input
+                            type="date"
+                            label="Start Date"
+                            name="startDate"
+                            value={formData.startDate}
+                            onChange={handleChange}
+                            required
+                            className="dark:[color-scheme:dark]"
+                        />
+                        <Input
+                            type="date"
+                            label="End Date"
+                            name="endDate"
+                            value={formData.endDate}
+                            onChange={handleChange}
+                            helperText="Leave blank if currently working here"
+                            className="dark:[color-scheme:dark]"
+                        />
+                    </div>
+
+                    <div className="flex justify-end gap-3 pt-4">
+                        <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button type="submit" variant="primary" disabled={isSubmitting}>
+                            {isSubmitting ? 'Saving...' : (currentExp ? 'Update' : 'Add Role')}
+                        </Button>
+                    </div>
+                </form>
+            </Modal>
+        </div >
+    );
 }
