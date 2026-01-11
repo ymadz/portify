@@ -162,28 +162,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Hints / Admin Link */}
-            {
-                user?.role === 'admin' && (
-                    <div className="mt-8">
-                        <Link href="/dashboard/admin">
-                            <div className="glass-panel p-4 rounded-2xl flex items-center justify-between hover:bg-white/5 transition-colors cursor-pointer group">
-                                <div className="flex items-center gap-4">
-                                    <div className="p-2 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 rounded-xl text-yellow-500">
-                                        ⚡
-                                    </div>
-                                    <div>
-                                        <h4 className="text-white font-bold">Admin Dashboard Available</h4>
-                                        <p className="text-gray-500 text-sm">Access system-wide statistics and management tools.</p>
-                                    </div>
-                                </div>
-                                <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-gray-400 group-hover:text-white">
-                                    →
-                                </div>
-                            </div>
-                        </Link>
-                    </div>
-                )
-            }
+
         </div >
     );
 }

@@ -53,27 +53,30 @@ function generateSessionToken() {
  * @param {string} fullName - User full name
  * @returns {string} - Session token
  */
-export function createSession(userId, email, fullName) {
-  const token = generateSessionToken();
+export function createSession(userId, email, fullName, role = 'user') {
+  const rawToken = generateSessionToken();
+  const token = `${rawToken}:${role}`; // Append role to token for middleware checks
   const expiresAt = Date.now() + SESSION_DURATION;
-  
+
   const sessionData = {
     userId,
     email,
     fullName,
+    role,
     expiresAt,
     createdAt: Date.now(),
   };
-  
+
   sessions.set(token, sessionData);
-  
+
   console.log('🟢 Session created:', {
     token: token.substring(0, 10) + '...',
     userId,
     email,
+    role,
     totalSessions: sessions.size
   });
-  
+
   return token;
 }
 
@@ -86,21 +89,21 @@ export function getSession(token) {
   console.log('🔍 Getting session for token:', token ? token.substring(0, 10) + '...' : 'null');
   console.log('🔍 Total sessions in store:', sessions.size);
   console.log('🔍 All session tokens:', Array.from(sessions.keys()).map(t => t.substring(0, 10) + '...'));
-  
+
   const session = sessions.get(token);
-  
+
   if (!session) {
     console.log('❌ Session not found in store');
     return null;
   }
-  
+
   // Check if session has expired
   if (Date.now() > session.expiresAt) {
     console.log('❌ Session expired');
     sessions.delete(token);
     return null;
   }
-  
+
   console.log('✅ Session found:', { userId: session.userId, email: session.email });
   return session;
 }
@@ -120,11 +123,11 @@ export function deleteSession(token) {
 export async function getCurrentUser() {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
-  
+
   if (!token) {
     return null;
   }
-  
+
   return getSession(token);
 }
 
@@ -134,7 +137,7 @@ export async function getCurrentUser() {
  */
 export async function setSessionCookie(token) {
   const cookieStore = await cookies();
-  
+
   cookieStore.set(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
@@ -159,11 +162,11 @@ export async function clearSessionCookie() {
  */
 export async function requireAuth() {
   const user = await getCurrentUser();
-  
+
   if (!user) {
     throw new Error('Unauthorized');
   }
-  
+
   return user;
 }
 

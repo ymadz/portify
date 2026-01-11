@@ -52,105 +52,68 @@ export default async function PortfolioPage({ params }) {
   }, {});
 
   return (
-    <div className="min-h-screen text-gray-100 selection:bg-rose-500/30">
-      {/* Header */}
-      <div className="glass-nav sticky top-0 z-40 border-b border-white/5">
-        <div className="max-w-6xl mx-auto px-6 py-6">
-          <div className="flex justify-between items-start">
-            <div>
-              <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400 mb-2 tracking-tight">
-                {portfolio.FullName}
-              </h1>
-              <p className="text-rose-400 font-medium mb-4">{portfolio.Email}</p>
+    <div className="min-h-screen bg-[#050505] text-gray-100 selection:bg-white/20 font-sans">
+      {/* Hero Section */}
+      <div className="relative pt-32 pb-24 px-6 overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] max-w-4xl bg-gradient-to-b from-rose-500/10 via-purple-500/5 to-transparent blur-[100px] pointer-events-none" />
 
-            </div>
-
+        <div className="max-w-3xl mx-auto text-center relative z-10">
+          <div className="mb-8 inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-tr from-rose-500 to-purple-600 shadow-[0_0_40px_rgba(244,63,94,0.3)] text-4xl font-bold text-white">
+            {portfolio.FullName?.charAt(0)}
           </div>
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white to-white/50">
+            {portfolio.FullName}
+          </h1>
+          <a
+            href={`mailto:${portfolio.Email}`}
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-all text-gray-300 hover:text-white"
+          >
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+            Available for work
+          </a>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 py-12 space-y-12">
-        {/* About Me Section */}
+      <div className="max-w-3xl mx-auto px-6 space-y-24 pb-32">
+        {/* About Section */}
         {portfolio.Bio && (
-          <section className="glass-card rounded-3xl p-8 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-12 opacity-10 pointer-events-none">
-              <span className="text-9xl">👤</span>
-            </div>
-            <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
-              <span className="text-green-400">About</span> Me
-            </h2>
-            <div className="prose prose-invert max-w-none">
-              <p className="text-gray-300 leading-relaxed text-lg whitespace-pre-wrap">
-                {portfolio.Bio}
-              </p>
-            </div>
-          </section>
-        )}
-        {/* Skills Section */}
-        {skills.length > 0 && (
-          <section className="glass-card rounded-3xl p-8 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-12 opacity-10 pointer-events-none">
-              <span className="text-9xl">🎯</span>
-            </div>
-            <h2 className="text-3xl font-bold mb-8 flex items-center gap-3">
-              <span className="text-rose-400">Skills</span> & Expertise
-            </h2>
-            <div className="grid md:grid-cols-2 gap-x-12 gap-y-10">
-              {Object.entries(groupedSkills).map(([category, categorySkills]) => (
-                <div key={category}>
-                  <h3 className="font-bold text-lg text-rose-300 mb-5 uppercase tracking-wide border-b border-white/10 pb-2">{category}</h3>
-                  <div className="space-y-4">
-                    {categorySkills
-                      .sort((a, b) => b.ProficiencyLevel - a.ProficiencyLevel)
-                      .map((skill, idx) => (
-                        <div key={idx} className="group">
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="text-gray-200 font-medium group-hover:text-white transition-colors">{skill.SkillName}</span>
-                            <span className="text-xs text-gray-500 font-mono">{skill.ProficiencyLevel * 10}%</span>
-                          </div>
-                          <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-gradient-to-r from-rose-500 to-indigo-500 rounded-full transition-all duration-1000 group-hover:shadow-[0_0_10px_rgba(244,63,94,0.6)]"
-                              style={{ width: `${skill.ProficiencyLevel * 10}%` }}
-                            />
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              ))}
+          <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
+            <h2 className="text-sm font-mono text-gray-500 uppercase tracking-widest mb-8">01. About</h2>
+            <div className="text-xl md:text-2xl text-gray-300 leading-relaxed font-light">
+              {portfolio.Bio}
             </div>
           </section>
         )}
 
         {/* Projects Section */}
         {projects.length > 0 && (
-          <section className="glass-card rounded-3xl p-8">
-            <h2 className="text-3xl font-bold mb-8 flex items-center gap-3">
-              <span className="text-indigo-400">Featured</span> Projects
-            </h2>
-            <div className="grid md:grid-cols-2 gap-6">
+          <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
+            <div className="flex items-baseline justify-between mb-12">
+              <h2 className="text-sm font-mono text-gray-500 uppercase tracking-widest">02. Selected Works</h2>
+            </div>
+
+            <div className="grid gap-12">
               {projects.map((project, idx) => (
-                <div key={idx} className="group glass-panel rounded-2xl p-6 hover:bg-white/5 transition-all duration-300 border border-white/5 hover:border-rose-500/30 hover:-translate-y-1">
-                  <div className="flex justify-between items-start mb-4">
-                    <h3 className="text-xl font-bold text-gray-100 group-hover:text-rose-300 transition-colors">{project.Title}</h3>
-                    {project.DateCompleted && (
-                      <span className="text-xs font-mono text-gray-500 bg-black/20 px-2 py-1 rounded">
-                        {new Date(project.DateCompleted).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                      </span>
+                <div key={idx} className="group relative">
+                  <div className="absolute -inset-4 bg-white/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10" />
+                  <div className="flex justify-between items-start gap-4 mb-3">
+                    <h3 className="text-2xl font-bold group-hover:text-rose-400 transition-colors">{project.Title}</h3>
+                    {project.ProjectURL && (
+                      <a
+                        href={project.ProjectURL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all transform hover:rotate-45"
+                      >
+                        ↗
+                      </a>
                     )}
                   </div>
-                  <p className="text-gray-400 mb-6 text-sm leading-relaxed line-clamp-3 group-hover:line-clamp-none transition-all">{project.Description}</p>
-
-                  {project.ProjectURL && (
-                    <a
-                      href={project.ProjectURL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 text-sm font-semibold text-rose-400 hover:text-rose-300 transition-colors"
-                    >
-                      View Project <span className="group-hover:translate-x-1 transition-transform">→</span>
-                    </a>
+                  <p className="text-gray-400 leading-relaxed mb-4 max-w-2xl">{project.Description}</p>
+                  {project.DateCompleted && (
+                    <div className="text-xs font-mono text-gray-600">
+                      {new Date(project.DateCompleted).getFullYear()}
+                    </div>
                   )}
                 </div>
               ))}
@@ -160,23 +123,40 @@ export default async function PortfolioPage({ params }) {
 
         {/* Experience Section */}
         {experience.length > 0 && (
-          <section className="glass-card rounded-3xl p-8">
-            <h2 className="text-3xl font-bold mb-10 flex items-center gap-3">
-              <span className="text-rose-400">Work</span> Experience
-            </h2>
-            <div className="space-y-8">
+          <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
+            <h2 className="text-sm font-mono text-gray-500 uppercase tracking-widest mb-12">03. Experience</h2>
+            <div className="space-y-12">
               {experience.map((exp, idx) => (
-                <div key={idx} className="relative pl-8 border-l border-white/10 last:border-0 hover:border-l-rose-500 transition-colors duration-300">
-                  <div className="absolute -left-[5px] top-2 w-2.5 h-2.5 rounded-full bg-rose-500 ring-4 ring-black" />
-                  <div className="mb-1 flex flex-wrap items-baseline gap-x-3">
-                    <h3 className="text-xl font-bold text-gray-100">{exp.JobTitle}</h3>
-                    <span className="text-rose-400 font-medium">{exp.Company}</span>
+                <div key={idx} className="group grid md:grid-cols-[1fr_3fr] gap-4 md:gap-8 transition-all">
+                  <div className="text-sm font-mono text-gray-500 py-1">
+                    {new Date(exp.StartDate).getFullYear()} — {exp.EndDate ? new Date(exp.EndDate).getFullYear() : 'Present'}
                   </div>
-                  <p className="text-sm text-gray-500 mb-3 font-mono uppercase tracking-wide">
-                    {new Date(exp.StartDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} —{' '}
-                    {exp.EndDate ? new Date(exp.EndDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Present'}
-                  </p>
-                  <p className="text-gray-400 max-w-3xl leading-relaxed">{exp.Description || "Contributed to key projects and company goals."}</p>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-100 mb-1 group-hover:text-white transition-colors">{exp.JobTitle}</h3>
+                    <div className="text-rose-400 mb-4 font-medium">{exp.Company}</div>
+                    <p className="text-gray-400 leading-relaxed text-sm">{exp.Description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Skills Section */}
+        {skills.length > 0 && (
+          <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-400">
+            <h2 className="text-sm font-mono text-gray-500 uppercase tracking-widest mb-10">04. Expertise</h2>
+            <div className="grid gap-8">
+              {Object.entries(groupedSkills).map(([category, categorySkills]) => (
+                <div key={category}>
+                  <h3 className="text-gray-400 font-medium mb-4 text-sm">{category}</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {categorySkills.map((skill, idx) => (
+                      <div key={idx} className="px-4 py-2 rounded-full border border-white/5 bg-white/[0.02] hover:bg-white/5 hover:border-white/10 transition-colors cursor-default">
+                        <span className="text-gray-300 text-sm">{skill.SkillName}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
@@ -184,12 +164,12 @@ export default async function PortfolioPage({ params }) {
         )}
 
         {/* Footer */}
-        <div className="text-center py-12 opacity-60 hover:opacity-100 transition-opacity">
-          <p className="text-gray-500 mb-6 font-mono text-sm">
-            Member since {new Date(portfolio.JoinDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+        <div className="pt-20 border-t border-white/5 text-center">
+          <p className="text-gray-600 text-sm font-mono mb-6">
+            © {new Date().getFullYear()} {portfolio.FullName}. All rights reserved.
           </p>
-          <Link href="/" className="inline-flex items-center gap-2 px-6 py-2 rounded-full border border-white/10 hover:bg-white/5 hover:border-white/20 transition-all text-sm text-gray-400 hover:text-white">
-            <span>←</span> Create Your Own Portfolio
+          <Link href="/" className="text-xs text-gray-700 hover:text-gray-500 transition-colors">
+            Built with Portify
           </Link>
         </div>
       </div>

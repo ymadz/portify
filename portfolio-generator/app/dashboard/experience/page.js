@@ -114,26 +114,11 @@ export default function ExperiencePage() {
                     <h1 className="text-3xl font-bold text-white mb-2">Work Experience</h1>
                     <p className="text-gray-400">Your professional journey and career milestones.</p>
                 </div>
+                <Button onClick={() => openModal()}>+ Add Experience</Button>
             </div>
 
             {/* Experience List - Always visible to show Add Card */}
             <div className="grid gap-6">
-                {/* Add New Experience Card */}
-                <div
-                    onClick={() => openModal()}
-                    className="glass-card rounded-3xl p-6 flex items-center justify-center text-center cursor-pointer border-dashed border-2 border-white/10 hover:border-white/20 hover:bg-white/5 transition-all group min-h-[120px]"
-                >
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-white group-hover:scale-110 transition-transform">
-                            <span className="text-2xl">+</span>
-                        </div>
-                        <div className="text-left">
-                            <h3 className="text-lg font-bold text-white">Add Experience</h3>
-                            <p className="text-gray-500 text-sm">Add a new role</p>
-                        </div>
-                    </div>
-                </div>
-
                 {experience.map((exp) => (
                     <div key={exp.ExpID} className="glass-card rounded-3xl p-6 relative overflow-hidden group hover:border-white/20 transition-all">
                         <div className="flex justify-between items-start mb-4">

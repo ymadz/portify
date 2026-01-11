@@ -13,7 +13,7 @@ export async function POST(request) {
     const body = await request.json();
     const { email, password } = body;
     console.log('🟢 Login attempt for:', email);
-    
+
     // Validation
     if (!email || !password) {
       console.log('❌ Missing email or password');
@@ -22,14 +22,14 @@ export async function POST(request) {
         { status: 400 }
       );
     }
-    
+
     // Find user by email
     console.log('🟢 Querying database for user...');
     const result = await query(
       'SELECT UserID, FullName, Email, PasswordHash, Role FROM Users WHERE Email = @email',
       { email }
     );
-    
+
     if (result.recordset.length === 0) {
       console.log('❌ User not found');
       return NextResponse.json(
@@ -37,14 +37,14 @@ export async function POST(request) {
         { status: 401 }
       );
     }
-    
+
     const user = result.recordset[0];
     console.log('🟢 User found:', { id: user.UserID, name: user.FullName, role: user.Role });
-    
+
     // Verify password
     console.log('🟢 Verifying password...');
     const isValidPassword = await verifyPassword(password, user.PasswordHash);
-    
+
     if (!isValidPassword) {
       console.log('❌ Invalid password');
       return NextResponse.json(
@@ -52,14 +52,14 @@ export async function POST(request) {
         { status: 401 }
       );
     }
-    
+
     console.log('✅ Password verified');
-    
+
     // Create session and set cookie
     console.log('🟢 Creating session...');
-    const token = createSession(user.UserID, user.Email, user.FullName);
+    const token = createSession(user.UserID, user.Email, user.FullName, user.Role);
     console.log('🟢 Session token created:', token.substring(0, 10) + '...');
-    
+
     // Create response with user data
     const response = NextResponse.json({
       success: true,
@@ -69,9 +69,9 @@ export async function POST(request) {
         email: user.Email,
         role: user.Role || 'user'
       },
-      redirectTo: user.Role === 'admin' ? '/dashboard/admin' : '/dashboard',
+      redirectTo: user.Role === 'admin' ? '/admin' : '/dashboard',
     });
-    
+
     // Set session cookie on response
     console.log('🟢 Setting session cookie...');
     response.cookies.set(SESSION_COOKIE_NAME, token, {
@@ -81,10 +81,10 @@ export async function POST(request) {
       maxAge: 24 * 60 * 60, // 24 hours in seconds
       path: '/',
     });
-    
+
     console.log('✅ Login successful, returning response');
     return response;
-    
+
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json(

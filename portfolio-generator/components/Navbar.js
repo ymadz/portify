@@ -33,7 +33,7 @@ export default function Navbar({
     }, [isUserMenuOpen]);
 
     return (
-        <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-6xl px-4 md:px-6">
+        <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-7xl px-4 md:px-6">
             <div className="glass-nav rounded-full px-4 md:px-8 py-3 md:py-4 border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] transition-all duration-300">
                 <div className="flex items-center justify-between">
                     {/* Logo / Brand */}
@@ -51,7 +51,7 @@ export default function Navbar({
                                 const isActive = pathname === item.path;
                                 return (
                                     <Link key={item.path} href={item.path}>
-                                        <div className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${isActive
+                                        <div className={`px-3 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center ${isActive
                                             ? 'bg-gradient-to-r from-rose-500/20 to-purple-500/20 text-white shadow-sm border border-white/10'
                                             : 'text-gray-400 hover:text-white hover:bg-white/5'
                                             }`}>
@@ -98,6 +98,18 @@ export default function Navbar({
                                                 <span>🌐</span> View Public Portfolio
                                             </Link>
                                         </div>
+
+                                        {user.role === 'admin' && (
+                                            <div className="px-2 pb-1 pt-1 border-t border-white/5">
+                                                <Link
+                                                    href={pathname.startsWith('/admin') ? '/dashboard' : '/admin'}
+                                                    onClick={() => setIsUserMenuOpen(false)}
+                                                    className="flex items-center gap-2 px-3 py-2 text-sm text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 rounded-xl transition-colors"
+                                                >
+                                                    <span>🔄</span> {pathname.startsWith('/admin') ? 'Switch to User View' : 'Switch to Admin View'}
+                                                </Link>
+                                            </div>
+                                        )}
 
                                         <div className="px-2 pb-1 pt-1 border-t border-white/5">
                                             <button

@@ -103,22 +103,11 @@ export default function ProjectsPage() {
                     <h1 className="text-3xl font-bold text-white mb-2">My Projects</h1>
                     <p className="text-gray-400">Showcase your best work to the world.</p>
                 </div>
+                <Button onClick={() => openModal()}>+ Add Project</Button>
             </div>
 
-            {/* Projects Grid - Always visible to show Add Card */}
+            {/* Projects Grid */}
             <div className="grid md:grid-cols-2 gap-6">
-                {/* Add New Project Card */}
-                <div
-                    onClick={() => openModal()}
-                    className="glass-card rounded-3xl p-6 flex flex-col items-center justify-center text-center cursor-pointer border-dashed border-2 border-white/10 hover:border-white/20 hover:bg-white/5 transition-all group min-h-[250px]"
-                >
-                    <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform">
-                        <span className="text-3xl">+</span>
-                    </div>
-                    <h3 className="text-xl font-bold text-white mb-1">Add Project</h3>
-                    <p className="text-gray-500 text-sm">Share a new case study</p>
-                </div>
-
                 {projects.map((project) => (
                     <div key={project.ProjectID} className="glass-card rounded-3xl p-6 group hover:border-white/20 transition-all">
                         <div className="flex justify-between items-start mb-4">

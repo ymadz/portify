@@ -88,25 +88,17 @@ export default function SkillsPage() {
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-3xl font-bold text-white mb-2">My Skills</h1>
-                    <p className="text-gray-400">Manage your technical expertise and proficiency.</p>
+                <div className="flex justify-between items-center w-full">
+                    <div>
+                        <h1 className="text-3xl font-bold text-white mb-2">My Skills</h1>
+                        <p className="text-gray-400">Manage your technical expertise and proficiency.</p>
+                    </div>
+                    <Button onClick={() => setIsModalOpen(true)}>+ Add Skill</Button>
                 </div>
             </div>
 
+            {/* Skills Grid */}
             <div className="grid md:grid-cols-2 gap-6">
-                {/* Add New Skill Card */}
-                <div
-                    onClick={() => setIsModalOpen(true)}
-                    className="glass-card rounded-3xl p-6 flex flex-col items-center justify-center text-center cursor-pointer border-dashed border-2 border-white/10 hover:border-white/20 hover:bg-white/5 transition-all group min-h-[200px]"
-                >
-                    <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform">
-                        <span className="text-3xl">+</span>
-                    </div>
-                    <h3 className="text-xl font-bold text-white mb-1">Add Skill</h3>
-                    <p className="text-gray-500 text-sm">Expand your expertise</p>
-                </div>
-
                 {Object.entries(groupedSkills).map(([category, items]) => (
                     <div key={category} className="glass-card rounded-3xl p-6">
                         <h3 className="text-lg font-bold text-white mb-4 border-b border-white/5 pb-2 flex items-center justify-between">
