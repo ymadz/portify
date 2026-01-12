@@ -124,7 +124,7 @@ export default function UserSkillsPage() {
         {
             key: 'ProficiencyLevel', label: 'Level', render: (val) => (
                 <div className="w-24 bg-gray-700 rounded-full h-2">
-                    <div className="bg-emerald-500 h-2 rounded-full" style={{ width: `${val}%` }}></div>
+                    <div className="bg-emerald-500 h-2 rounded-full" style={{ width: `${val * 10}%` }}></div>
                 </div>
             )
         },
@@ -133,7 +133,7 @@ export default function UserSkillsPage() {
     const fields = [
         { name: 'userId', label: 'User', type: 'search-select', options: users.map(u => ({ value: u.UserID, label: u.FullName })), required: true },
         { name: 'skillDefId', label: 'Skill', type: 'select', options: skills.map(s => ({ value: s.SkillDefID, label: s.SkillName })), required: true },
-        { name: 'proficiencyLevel', label: 'Proficiency (0-100)', type: 'text', required: true },
+        { name: 'proficiencyLevel', label: 'Proficiency Level (1-10)', type: 'number', required: true, min: 1, max: 10 },
     ];
 
     return (

@@ -1,7 +1,24 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Button, Card, Navbar } from '@/components';
 
 export default function Home() {
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalProjects: 0,
+    totalSkills: 0,
+    totalExperience: 0,
+  });
+
+  useEffect(() => {
+    fetch('/api/public-stats')
+      .then(res => res.json())
+      .then(data => setStats(data))
+      .catch(err => console.error('Failed to load stats:', err));
+  }, []);
+
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Decorative background blobs */}
@@ -15,7 +32,7 @@ export default function Home() {
       <Navbar showAuthButtons={true} />
 
       {/* Hero Section */}
-      <div className="pt-40 pb-20 px-6">
+      <div className="pt-52 pb-20 px-6">
         <div className="max-w-6xl mx-auto text-center relative z-10">
           <div className="inline-block mb-8 px-6 py-2 rounded-full glass border border-white/10">
             <span className="bg-gradient-to-r from-rose-400 to-purple-400 bg-clip-text text-transparent font-semibold tracking-wide uppercase text-xs">
@@ -53,16 +70,22 @@ export default function Home() {
           <div className="max-w-3xl mx-auto">
             <div className="glass-panel rounded-2xl p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="text-center">
-                <div className="text-4xl font-bold text-white mb-2 drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">2,200+</div>
+                <div className="text-4xl font-bold text-white mb-2 drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
+                  {stats.totalUsers.toLocaleString()}+
+                </div>
                 <div className="text-gray-400 text-sm uppercase tracking-wider">Users</div>
               </div>
               <div className="text-center border-t md:border-t-0 md:border-l border-white/10 pt-8 md:pt-0">
-                <div className="text-4xl font-bold text-white mb-2 drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">6</div>
-                <div className="text-gray-400 text-sm uppercase tracking-wider">SQL Modules</div>
+                <div className="text-4xl font-bold text-white mb-2 drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
+                  {stats.totalProjects.toLocaleString()}+
+                </div>
+                <div className="text-gray-400 text-sm uppercase tracking-wider">Projects</div>
               </div>
               <div className="text-center border-t md:border-t-0 md:border-l border-white/10 pt-8 md:pt-0">
-                <div className="text-4xl font-bold text-white mb-2 drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">100%</div>
-                <div className="text-gray-400 text-sm uppercase tracking-wider">Uptime</div>
+                <div className="text-4xl font-bold text-white mb-2 drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
+                  {stats.totalSkills.toLocaleString()}+
+                </div>
+                <div className="text-gray-400 text-sm uppercase tracking-wider">Skills Available</div>
               </div>
             </div>
           </div>

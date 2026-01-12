@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { Card, Button, Modal, Input, Textarea } from '@/components';
+import { Card, Button, Modal, Input, Textarea, EmptyState } from '@/components';
 
 export default function ProjectsPage() {
     const [projects, setProjects] = useState([]);
@@ -107,52 +107,63 @@ export default function ProjectsPage() {
             </div>
 
             {/* Projects Grid */}
-            <div className="grid md:grid-cols-2 gap-6">
-                {projects.map((project) => (
-                    <div key={project.ProjectID} className="glass-card rounded-3xl p-6 group hover:border-white/20 transition-all">
-                        <div className="flex justify-between items-start mb-4">
-                            <h3 className="text-xl font-bold text-white group-hover:text-rose-400 transition-colors">
-                                {project.Title}
-                            </h3>
-                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); openModal(project); }}
-                                    className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
-                                >
-                                    ✏️
-                                </button>
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); handleDelete(project.ProjectID); }}
-                                    className="p-2 rounded-lg bg-white/5 hover:bg-red-500/10 text-gray-400 hover:text-red-400 transition-colors"
-                                >
-                                    🗑️
-                                </button>
+            {/* Projects Grid or Empty State */}
+            {projects.length === 0 ? (
+                <EmptyState
+                    title="No Projects Yet"
+                    description="Showcase your best work to the world. Add your first project now."
+                    actionLabel="Add Project"
+                    onAction={() => openModal()}
+                    icon="🚀"
+                />
+            ) : (
+                <div className="grid md:grid-cols-2 gap-6">
+                    {projects.map((project) => (
+                        <div key={project.ProjectID} className="glass-card rounded-3xl p-6 group hover:border-white/20 transition-all">
+                            <div className="flex justify-between items-start mb-4">
+                                <h3 className="text-xl font-bold text-white group-hover:text-rose-400 transition-colors">
+                                    {project.Title}
+                                </h3>
+                                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); openModal(project); }}
+                                        className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+                                    >
+                                        ✏️
+                                    </button>
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); handleDelete(project.ProjectID); }}
+                                        className="p-2 rounded-lg bg-white/5 hover:bg-red-500/10 text-gray-400 hover:text-red-400 transition-colors"
+                                    >
+                                        🗑️
+                                    </button>
+                                </div>
+                            </div>
+
+                            <p className="text-gray-400 mb-6 line-clamp-3 text-sm leading-relaxed">
+                                {project.Description}
+                            </p>
+
+                            <div className="flex items-center justify-between mt-auto">
+                                {project.ProjectURL && (
+                                    <a
+                                        href={project.ProjectURL}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-sm font-medium text-rose-400 hover:text-rose-300 flex items-center gap-1"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        View Project ↗
+                                    </a>
+                                )}
+                                <span className="text-xs text-gray-600 font-mono">
+                                    {new Date(project.DateCompleted).toLocaleDateString()}
+                                </span>
                             </div>
                         </div>
-
-                        <p className="text-gray-400 mb-6 line-clamp-3 text-sm leading-relaxed">
-                            {project.Description}
-                        </p>
-
-                        <div className="flex items-center justify-between mt-auto">
-                            {project.ProjectURL && (
-                                <a
-                                    href={project.ProjectURL}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-sm font-medium text-rose-400 hover:text-rose-300 flex items-center gap-1"
-                                    onClick={(e) => e.stopPropagation()}
-                                >
-                                    View Project ↗
-                                </a>
-                            )}
-                            <span className="text-xs text-gray-600 font-mono">
-                                {new Date(project.DateCompleted).toLocaleDateString()}
-                            </span>
-                        </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
 
             {/* Create/Edit Modal */}
             <Modal

@@ -68,9 +68,13 @@ export default function LoginPage() {
         {/* Logo/Brand */}
         <div className="text-center mb-8">
           <Link href="/">
-            <div className="inline-flex items-center gap-3 mb-6 hover:opacity-80 transition-opacity">
-              <div className="w-12 h-12 bg-gradient-to-br from-rose-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg shadow-rose-500/30">
-                <span className="text-white font-bold text-xl">P</span>
+            <div className="inline-flex items-center gap-3 mb-6 hover:opacity-80 transition-opacity group">
+              <div className="relative w-16 h-16 group-hover:scale-110 transition-transform duration-300">
+                <img
+                  src="/logo.png"
+                  alt="Portify Logo"
+                  className="w-full h-full object-contain"
+                />
               </div>
               <span className="font-bold text-2xl text-white tracking-wide">Portify</span>
             </div>

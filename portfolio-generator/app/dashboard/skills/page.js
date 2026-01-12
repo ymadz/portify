@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { Card, Button, Modal, Select, Input, Badge } from '@/components';
+import { Card, Button, Modal, SearchableSelect, Input, Badge, EmptyState } from '@/components';
 
 export default function SkillsPage() {
     const [skills, setSkills] = useState([]);
     const [definitions, setDefinitions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [formData, setFormData] = useState({ skillDefId: '', proficiency: 5 });
+    const [formData, setFormData] = useState({ skillDefID: '', proficiencyLevel: 5 });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Fetch Data
@@ -54,7 +54,7 @@ export default function SkillsPage() {
 
             toast.success('Skill added!');
             setIsModalOpen(false);
-            setFormData({ skillDefId: '', proficiency: 5 });
+            setFormData({ skillDefID: '', proficiencyLevel: 5 });
             fetchData();
         } catch (error) {
             toast.error(error.message);
@@ -97,47 +97,57 @@ export default function SkillsPage() {
                 </div>
             </div>
 
-            {/* Skills Grid */}
-            <div className="grid md:grid-cols-2 gap-6">
-                {Object.entries(groupedSkills).map(([category, items]) => (
-                    <div key={category} className="glass-card rounded-3xl p-6">
-                        <h3 className="text-lg font-bold text-white mb-4 border-b border-white/5 pb-2 flex items-center justify-between">
-                            {category}
-                            <Badge variant="secondary" size="sm">{items.length}</Badge>
-                        </h3>
-                        <div className="space-y-3">
-                            {items.map(skill => (
-                                <div key={skill.UserSkillID} className="group flex items-center gap-4 bg-white/5 p-3 rounded-2xl hover:bg-white/10 transition-colors border border-transparent hover:border-white/10">
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center text-lg font-bold border border-white/10 text-gray-300">
-                                        {skill.SkillName.charAt(0)}
-                                    </div>
-                                    <div className="flex-1">
-                                        <div className="flex justify-between items-center mb-1">
-                                            <span className="font-medium text-gray-200">{skill.SkillName}</span>
-                                            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button
-                                                    onClick={() => handleDelete(skill.UserSkillID)}
-                                                    className="text-gray-500 hover:text-red-400 transition-colors"
-                                                >
-                                                    ×
-                                                </button>
+            {/* Skills Grid or Empty State */}
+            {skills.length === 0 ? (
+                <EmptyState
+                    title="No Skills Added"
+                    description="Highlight your technical expertise. Add your first skill now."
+                    actionLabel="Add Skill"
+                    onAction={() => setIsModalOpen(true)}
+                    icon="🎯"
+                />
+            ) : (
+                <div className="grid md:grid-cols-2 gap-6">
+                    {Object.entries(groupedSkills).map(([category, items]) => (
+                        <div key={category} className="glass-card rounded-3xl p-6">
+                            <h3 className="text-lg font-bold text-white mb-4 border-b border-white/5 pb-2 flex items-center justify-between">
+                                {category}
+                                <Badge variant="secondary" size="sm">{items.length}</Badge>
+                            </h3>
+                            <div className="space-y-3">
+                                {items.map(skill => (
+                                    <div key={skill.UserSkillID} className="group flex items-center gap-4 bg-white/5 p-3 rounded-2xl hover:bg-white/10 transition-colors border border-transparent hover:border-white/10">
+                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center text-lg font-bold border border-white/10 text-gray-300">
+                                            {skill.SkillName.charAt(0)}
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="flex justify-between items-center mb-1">
+                                                <span className="font-medium text-gray-200">{skill.SkillName}</span>
+                                                <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button
+                                                        onClick={() => handleDelete(skill.UserSkillID)}
+                                                        className="text-gray-500 hover:text-red-400 transition-colors"
+                                                    >
+                                                        ×
+                                                    </button>
+                                                </div>
                                             </div>
+                                            {/* Proficiency Bar */}
+                                            <div className="h-1.5 w-full bg-gray-800 rounded-full overflow-hidden">
+                                                <div
+                                                    className="h-full bg-gradient-to-r from-purple-500 to-indigo-500"
+                                                    style={{ width: `${(skill.ProficiencyLevel * 10)}%` }}
+                                                ></div>
+                                            </div>
+                                            <div className="text-xs text-right mt-1 text-gray-500">Lvl {skill.ProficiencyLevel}</div>
                                         </div>
-                                        {/* Proficiency Bar */}
-                                        <div className="h-1.5 w-full bg-gray-800 rounded-full overflow-hidden">
-                                            <div
-                                                className="h-full bg-gradient-to-r from-purple-500 to-indigo-500"
-                                                style={{ width: `${(skill.ProficiencyLevel * 10)}%` }}
-                                            ></div>
-                                        </div>
-                                        <div className="text-xs text-right mt-1 text-gray-500">Lvl {skill.ProficiencyLevel}</div>
                                     </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
 
             {/* Add Skill Modal */}
             <Modal
@@ -146,19 +156,17 @@ export default function SkillsPage() {
                 title="Add New Skill"
             >
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    <Select
+                    <SearchableSelect
                         label="Select Skill"
-                        value={formData.skillDefId}
-                        onChange={(e) => setFormData({ ...formData, skillDefId: e.target.value })}
+                        value={formData.skillDefID}
+                        onChange={(value) => setFormData({ ...formData, skillDefID: value })}
+                        options={definitions.map(def => ({
+                            value: def.SkillDefID,
+                            label: `${def.SkillName} (${def.Category})`
+                        }))}
+                        placeholder="Search for a skill..."
                         required
-                    >
-                        <option value="">Choose a skill...</option>
-                        {definitions.map(def => (
-                            <option key={def.SkillDefID} value={def.SkillDefID}>
-                                {def.SkillName} ({def.Category})
-                            </option>
-                        ))}
-                    </Select>
+                    />
 
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-300 block">
@@ -169,12 +177,12 @@ export default function SkillsPage() {
                                 type="range"
                                 min="1"
                                 max="10"
-                                value={formData.proficiency}
-                                onChange={(e) => setFormData({ ...formData, proficiency: parseInt(e.target.value) })}
+                                value={formData.proficiencyLevel}
+                                onChange={(e) => setFormData({ ...formData, proficiencyLevel: parseInt(e.target.value) })}
                                 className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-purple-500"
                             />
                             <div className="w-12 h-10 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center font-bold text-purple-400">
-                                {formData.proficiency}
+                                {formData.proficiencyLevel}
                             </div>
                         </div>
                         <p className="text-xs text-gray-500">1 = Novice, 10 = Expert</p>

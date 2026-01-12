@@ -103,7 +103,7 @@ export default function AdminLayout({ children }) {
             />
 
             {/* Main Content Area */}
-            <main className="max-w-7xl mx-auto px-6 py-8 pt-32">
+            <main className="max-w-7xl mx-auto px-6 py-8 pt-48">
                 {children}
             </main>
         </div>

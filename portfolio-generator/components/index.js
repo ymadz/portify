@@ -14,3 +14,4 @@ export { default as AdminSidebar } from './AdminSidebar';
 export { default as AdminTable } from './AdminTable';
 export { default as AdminForm } from './AdminForm';
 export { default as SearchableSelect } from './SearchableSelect';
+export { default as EmptyState } from './EmptyState';

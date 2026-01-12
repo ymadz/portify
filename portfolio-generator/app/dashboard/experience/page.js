@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { Card, Button, Modal, Input } from '@/components';
+import { Card, Button, Modal, Input, EmptyState } from '@/components';
 
 export default function ExperiencePage() {
     const [experience, setExperience] = useState([]);
@@ -117,46 +117,56 @@ export default function ExperiencePage() {
                 <Button onClick={() => openModal()}>+ Add Experience</Button>
             </div>
 
-            {/* Experience List - Always visible to show Add Card */}
-            <div className="grid gap-6">
-                {experience.map((exp) => (
-                    <div key={exp.ExpID} className="glass-card rounded-3xl p-6 relative overflow-hidden group hover:border-white/20 transition-all">
-                        <div className="flex justify-between items-start mb-4">
-                            <div>
-                                <h3 className="text-xl font-bold text-white group-hover:text-blue-400 transition-colors">
-                                    {exp.JobTitle}
-                                </h3>
-                                <div className="text-blue-400 font-medium">{exp.Company}</div>
+            {/* Experience List or Empty State */}
+            {experience.length === 0 ? (
+                <EmptyState
+                    title="No Experience Added"
+                    description="Detail your professional journey. Add your first experience now."
+                    actionLabel="Add Experience"
+                    onAction={() => openModal()}
+                    icon="💼"
+                />
+            ) : (
+                <div className="grid gap-6">
+                    {experience.map((exp) => (
+                        <div key={exp.ExpID} className="glass-card rounded-3xl p-6 relative overflow-hidden group hover:border-white/20 transition-all">
+                            <div className="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 className="text-xl font-bold text-white group-hover:text-blue-400 transition-colors">
+                                        {exp.JobTitle}
+                                    </h3>
+                                    <div className="text-blue-400 font-medium">{exp.Company}</div>
+                                </div>
+                                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); openModal(exp); }}
+                                        className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+                                    >
+                                        ✏️
+                                    </button>
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); handleDelete(exp.ExpID); }}
+                                        className="p-2 rounded-lg bg-white/5 hover:bg-red-500/10 text-gray-400 hover:text-red-400 transition-colors"
+                                    >
+                                        🗑️
+                                    </button>
+                                </div>
                             </div>
-                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); openModal(exp); }}
-                                    className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
-                                >
-                                    ✏️
-                                </button>
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); handleDelete(exp.ExpID); }}
-                                    className="p-2 rounded-lg bg-white/5 hover:bg-red-500/10 text-gray-400 hover:text-red-400 transition-colors"
-                                >
-                                    🗑️
-                                </button>
+
+                            <div className="flex items-center gap-2 text-sm text-gray-500 font-mono mb-4">
+                                <span>{new Date(exp.StartDate).toLocaleDateString()}</span>
+                                <span>→</span>
+                                <span className={!exp.EndDate ? "text-green-400" : ""}>
+                                    {exp.EndDate ? new Date(exp.EndDate).toLocaleDateString() : 'Present'}
+                                </span>
                             </div>
-                        </div>
 
-                        <div className="flex items-center gap-2 text-sm text-gray-500 font-mono mb-4">
-                            <span>{new Date(exp.StartDate).toLocaleDateString()}</span>
-                            <span>→</span>
-                            <span className={!exp.EndDate ? "text-green-400" : ""}>
-                                {exp.EndDate ? new Date(exp.EndDate).toLocaleDateString() : 'Present'}
-                            </span>
+                            {/* Timeline connector (decorative) */}
+                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-transparent opacity-0 group-hover:opacity-50 transition-opacity"></div>
                         </div>
-
-                        {/* Timeline connector (decorative) */}
-                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-transparent opacity-0 group-hover:opacity-50 transition-opacity"></div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
 
             {/* Add/Edit Modal */}
             <Modal

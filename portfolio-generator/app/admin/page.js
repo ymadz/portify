@@ -45,7 +45,7 @@ export default function AdminPage() {
                     <div className="text-4xl font-bold text-white">{stats?.totalProjects || 0}</div>
                 </Card>
                 <Card className="border-l-4 border-emerald-500 p-6">
-                    <div className="text-gray-400 text-sm uppercase font-bold mb-2">Total Skills</div>
+                    <div className="text-gray-400 text-sm uppercase font-bold mb-2">Total Skills Assigned</div>
                     <div className="text-4xl font-bold text-white">{stats?.totalUserSkills || 0}</div>
                 </Card>
             </div>

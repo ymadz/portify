@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 
 export default function Navbar({
@@ -13,7 +14,9 @@ export default function Navbar({
 }) {
     const pathname = usePathname();
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const menuRef = useRef(null);
+    const mobileMenuRef = useRef(null);
 
     // Close menu when clicking outside
     useEffect(() => {
@@ -21,27 +24,35 @@ export default function Navbar({
             if (menuRef.current && !menuRef.current.contains(event.target)) {
                 setIsUserMenuOpen(false);
             }
+            if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+                setIsMobileMenuOpen(false);
+            }
         };
 
-        if (isUserMenuOpen) {
+        if (isUserMenuOpen || isMobileMenuOpen) {
             document.addEventListener('mousedown', handleClickOutside);
         }
 
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [isUserMenuOpen]);
+    }, [isUserMenuOpen, isMobileMenuOpen]);
 
     return (
-        <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-7xl px-4 md:px-6">
-            <div className="glass-nav rounded-full px-4 md:px-8 py-3 md:py-4 border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] transition-all duration-300">
+        <nav className="fixed top-3 md:top-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-7xl px-2 md:px-6">
+            <div className="glass-nav rounded-full px-3 md:px-8 py-2 md:py-4 border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] transition-all duration-300">
                 <div className="flex items-center justify-between">
                     {/* Logo / Brand */}
-                    <Link href={logoHref || (user ? "/dashboard" : "/")} className="flex items-center gap-3 group">
-                        <div className="w-10 h-10 bg-gradient-to-br from-rose-500 to-purple-600 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(244,63,94,0.4)] group-hover:scale-110 transition-transform duration-300">
-                            <span className="text-white font-bold text-lg">P</span>
+                    <Link href={logoHref || (user ? "/dashboard" : "/")} className="flex items-center gap-2 group">
+                        <div className="relative w-12 h-12 md:w-[100px] md:h-[100px] group-hover:scale-110 transition-transform duration-300">
+                            <Image
+                                src="/logo.png"
+                                alt="Portify Logo"
+                                fill
+                                className="object-contain"
+                            />
                         </div>
-                        <span className="font-bold text-white text-lg tracking-wide hidden sm:block">Portify</span>
+                        <span className="font-bold text-white text-lg md:text-2xl tracking-wide hidden sm:block">Portify</span>
                     </Link>
 
                     {/* Navigation Items (Center) */}
@@ -65,17 +76,34 @@ export default function Navbar({
                     )}
 
                     {/* Right Actions */}
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 md:gap-4">
+                        {/* Mobile Menu Button */}
+                        {navItems.length > 0 && (
+                            <button
+                                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                                className="md:hidden p-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-all"
+                                aria-label="Toggle menu"
+                            >
+                                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    {isMobileMenuOpen ? (
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    ) : (
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                    )}
+                                </svg>
+                            </button>
+                        )}
+
                         {user ? (
                             <div className="relative" ref={menuRef}>
                                 <button
                                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                                    className="flex items-center gap-3 pl-2 pr-1 py-1 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-all group"
+                                    className="flex items-center gap-2 md:gap-3 pl-2 pr-1 py-1 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-all group"
                                 >
-                                    <span className="text-sm font-medium text-gray-300 hidden sm:block group-hover:text-white">
+                                    <span className="text-xs md:text-sm font-medium text-gray-300 hidden sm:block group-hover:text-white">
                                         {user.fullName?.split(' ')[0]}
                                     </span>
-                                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center text-white font-bold text-sm shadow-lg ring-2 ring-white/10">
+                                    <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center text-white font-bold text-xs md:text-sm shadow-lg ring-2 ring-white/10">
                                         {user.fullName?.charAt(0) || 'U'}
                                     </div>
                                 </button>
@@ -124,14 +152,15 @@ export default function Navbar({
                             </div>
                         ) : showAuthButtons ? (
                             <>
-                                <Link href="/login">
-                                    <button className="px-5 py-2.5 rounded-full text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-all">
+                                <Link href="/login" className="hidden sm:inline-block">
+                                    <button className="px-3 md:px-5 py-2 md:py-2.5 rounded-full text-xs md:text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-all">
                                         Sign In
                                     </button>
                                 </Link>
                                 <Link href="/register">
-                                    <button className="px-6 py-2.5 rounded-full bg-gradient-to-r from-rose-500 to-purple-600 text-white text-sm font-bold shadow-[0_0_20px_rgba(244,63,94,0.3)] hover:shadow-[0_0_30px_rgba(244,63,94,0.5)] hover:scale-105 transition-all duration-300">
-                                        Get Started
+                                    <button className="px-4 md:px-6 py-2 md:py-2.5 rounded-full bg-gradient-to-r from-rose-500 to-purple-600 text-white text-xs md:text-sm font-bold shadow-[0_0_20px_rgba(244,63,94,0.3)] hover:shadow-[0_0_30px_rgba(244,63,94,0.5)] hover:scale-105 transition-all duration-300">
+                                    <span className="hidden sm:inline">Get Started</span>
+                                    <span className="sm:hidden">Sign Up</span>
                                     </button>
                                 </Link>
                             </>
@@ -139,6 +168,45 @@ export default function Navbar({
                     </div>
                 </div>
             </div>
+
+            {/* Mobile Navigation Menu */}
+            {navItems.length > 0 && isMobileMenuOpen && (
+                <div
+                    ref={mobileMenuRef}
+                    className="md:hidden mt-2 glass-card rounded-2xl p-3 border border-white/10 shadow-xl animate-in fade-in slide-in-from-top-5 duration-200"
+                >
+                    <div className="flex flex-col gap-1">
+                        {navItems.map((item) => {
+                            const isActive = pathname === item.path;
+                            return (
+                                <Link
+                                    key={item.path}
+                                    href={item.path}
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                >
+                                    <div className={`px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 flex items-center gap-3 ${
+                                        isActive
+                                            ? 'bg-gradient-to-r from-rose-500/20 to-purple-500/20 text-white shadow-sm border border-white/10'
+                                            : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                    }`}>
+                                        <span>{item.icon}</span>
+                                        <span>{item.name}</span>
+                                    </div>
+                                </Link>
+                            );
+                        })}
+                    </div>
+                    {showAuthButtons && (
+                        <div className="mt-3 pt-3 border-t border-white/10 sm:hidden">
+                            <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                                <button className="w-full px-4 py-2.5 rounded-xl text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-all mb-2">
+                                    Sign In
+                                </button>
+                            </Link>
+                        </div>
+                    )}
+                </div>
+            )}
         </nav>
     );
 }
